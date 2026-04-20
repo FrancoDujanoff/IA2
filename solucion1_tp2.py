@@ -47,10 +47,9 @@ def simular_dia(T_media, T_amplitud):
 
 def main():
     estaciones = [
-        ("VERANO", 26.0, 9.0),
-        ("OTOÑO", 16.0, 7.0),
-        ("INVIERNO", 9.0, 6.0),
-        ("PRIMAVERA", 20.0, 8.0)
+        ("CASO 1", 24.0, 8.0),
+        ("CASO 2", 33.0, 5.0),
+        ("CASO 3", 12.0, 8.0),
     ]
     
     # Iteramos sobre cada estación
