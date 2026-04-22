@@ -22,8 +22,7 @@ z_input['POS'] = fuzz.trimf(z_input.universe, [0, 5, 10])
 z_input['MUY_POS'] = fuzz.trapmf(z_input.universe, [5, 10, 100, 100])
 
 # Conjuntos HORA
-hora_input['NOCHE'] = fuzz.trapmf(hora_input.universe, [0, 0, 7, 8]) + \
-                      fuzz.trapmf(hora_input.universe, [19, 20, 24, 24])
+hora_input['NOCHE'] = fuzz.trapmf(hora_input.universe, [0, 0, 7, 8]) + fuzz.trapmf(hora_input.universe, [19, 20, 24, 24])
 hora_input['DIA'] = fuzz.trapmf(hora_input.universe, [7, 8, 19, 20])
 
 # Conjuntos de Temperatura Predicha
@@ -50,16 +49,19 @@ reglas = [
 
     ctrl.Rule(hora_input['DIA'] & z_input['ZERO'] & t_pred_input['ALTA'], ventana_output['CASI_CERRADA']),
     ctrl.Rule(hora_input['DIA'] & z_input['POS'] & t_pred_input['ALTA'], ventana_output['CERRADA']),
+    
     ctrl.Rule(hora_input['DIA'] & z_input['POS'] & t_pred_input['BAJA'], ventana_output['MITAD']),
 
-    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['ALTA'] & z_input['MUY_NEG'], ventana_output['ABIERTA']),
-    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['ALTA'] & z_input['NEG'], ventana_output['CASI_ABIERTA']),
-    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['ALTA'] & z_input['POS'], ventana_output['CERRADA']),
-    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['ALTA'] & z_input['MUY_POS'], ventana_output['CERRADA']),
-    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['BAJA'] & z_input['MUY_NEG'], ventana_output['CERRADA']),
-    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['BAJA'] & z_input['NEG'], ventana_output['CERRADA']),
-    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['BAJA'] & z_input['POS'], ventana_output['CASI_ABIERTA']),
-    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['BAJA'] & z_input['MUY_POS'], ventana_output['ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_NEG'] & t_pred_input['ALTA'], ventana_output['ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['NEG'] & t_pred_input['ALTA'], ventana_output['CASI_ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['POS'] & t_pred_input['ALTA'], ventana_output['CASI_ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_POS'] & t_pred_input['ALTA'], ventana_output['ABIERTA']),
+    
+    ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_NEG'] & t_pred_input['BAJA'], ventana_output['ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['NEG'] & t_pred_input['BAJA'], ventana_output['CERRADA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['POS'] & t_pred_input['BAJA'], ventana_output['CASI_ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_POS'] & t_pred_input['BAJA'], ventana_output['ABIERTA']),
+    
     ctrl.Rule(hora_input['NOCHE'] & z_input['ZERO'], ventana_output['CERRADA'])
 ]
 
@@ -87,7 +89,7 @@ def simular_difuso(T_media, T_amplitud, metodo_desborrosificacion):
     v = np.zeros(n_steps)
     v[0] = 20.0  # Temperatura inicial
     apertura_hist = np.zeros(n_steps)
-    T_pronostico = 12 * 3600  # Miramos 12 horas hacia el futuro
+    T_pronostico = 6 * 3600  # Miramos 6 horas hacia el futuro
     pasos_futuro = int(T_pronostico / dt)
 
     for i in range(n_steps - 1):
