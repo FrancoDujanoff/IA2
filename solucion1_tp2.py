@@ -36,7 +36,7 @@ def simular_dia(T_media, T_amplitud):
         
     ventana_estado[-1] = ventana_estado[-2]
 
-    # Cálculo del Desempeño J (8:00 a 20:00)
+    # Calculo del Desempeño J  entre 8:00 a 20:00
     idx_8h = int((8 * 3600) / dt)
     idx_20h = int((20 * 3600) / dt)
     
@@ -47,9 +47,9 @@ def simular_dia(T_media, T_amplitud):
 
 def main():
     estaciones = [
-        ("CASO 1", 24.0, 8.0),
-        ("CASO 2", 33.0, 5.0),
-        ("CASO 3", 12.0, 8.0),
+        ("Caso 1: Cruza el Confort (Oscila 16°C a 32°C)", 24.0, 8.0),
+        ("Caso 2: Siempre por Encima (Oscila 28°C a 38°C)", 33.0, 5.0),
+        ("Caso 3: Siempre por Debajo (Oscila 4°C a 20°C)", 12.0, 8.0),
     ]
     
     # Iteramos sobre cada estación

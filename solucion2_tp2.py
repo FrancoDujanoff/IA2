@@ -8,8 +8,12 @@ import matplotlib.pyplot as plt
 # ==========================================
 z_input = ctrl.Antecedent(np.arange(-100, 101, 1), 'Z')
 hora_input = ctrl.Antecedent(np.arange(0, 25, 0.1), 'hora')
+t_pred_input = ctrl.Antecedent(np.arange(0, 51, 1), 't_predicha')
 ventana_output = ctrl.Consequent(np.arange(0, 101, 1), 'ventana')
 
+# ==========================================
+# 2. Borrosificacion
+# ==========================================
 # Conjuntos Z
 z_input['MUY_NEG'] = fuzz.trapmf(z_input.universe, [-100, -100, -10, -5])
 z_input['NEG'] = fuzz.trimf(z_input.universe, [-10, -5, 0])
@@ -22,6 +26,10 @@ hora_input['NOCHE'] = fuzz.trapmf(hora_input.universe, [0, 0, 7, 8]) + \
                       fuzz.trapmf(hora_input.universe, [19, 20, 24, 24])
 hora_input['DIA'] = fuzz.trapmf(hora_input.universe, [7, 8, 19, 20])
 
+# Conjuntos de Temperatura Predicha
+t_pred_input['BAJA'] = fuzz.trapmf(t_pred_input.universe, [0, 0, 22, 28])
+t_pred_input['ALTA'] = fuzz.trapmf(t_pred_input.universe, [22, 28, 50, 50])
+
 # Conjuntos VENTANA (Porcentaje de Resistencia)
 ventana_output['ABIERTA'] = fuzz.trimf(ventana_output.universe, [0, 0, 25])
 ventana_output['CASI_ABIERTA'] = fuzz.trimf(ventana_output.universe, [0, 25, 50])
@@ -29,6 +37,9 @@ ventana_output['MITAD'] = fuzz.trimf(ventana_output.universe, [25, 50, 75])
 ventana_output['CASI_CERRADA'] = fuzz.trimf(ventana_output.universe, [50, 75, 100])
 ventana_output['CERRADA'] = fuzz.trapmf(ventana_output.universe, [75, 100, 100, 100])
 
+# ==========================================
+# 3. Inferencia Difusa
+# ==========================================
 # Base de Reglas
 reglas = [
     ctrl.Rule(hora_input['DIA'] & z_input['MUY_NEG'], ventana_output['ABIERTA']),
@@ -36,14 +47,27 @@ reglas = [
     ctrl.Rule(hora_input['DIA'] & z_input['ZERO'], ventana_output['MITAD']),
     ctrl.Rule(hora_input['DIA'] & z_input['POS'], ventana_output['CASI_CERRADA']),
     ctrl.Rule(hora_input['DIA'] & z_input['MUY_POS'], ventana_output['CERRADA']),
-    ctrl.Rule(hora_input['NOCHE'], ventana_output['CERRADA'])
+
+    ctrl.Rule(hora_input['DIA'] & z_input['ZERO'] & t_pred_input['ALTA'], ventana_output['CASI_CERRADA']),
+    ctrl.Rule(hora_input['DIA'] & z_input['POS'] & t_pred_input['ALTA'], ventana_output['CERRADA']),
+    ctrl.Rule(hora_input['DIA'] & z_input['POS'] & t_pred_input['BAJA'], ventana_output['MITAD']),
+
+    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['ALTA'] & z_input['MUY_NEG'], ventana_output['ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['ALTA'] & z_input['NEG'], ventana_output['CASI_ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['ALTA'] & z_input['POS'], ventana_output['CERRADA']),
+    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['ALTA'] & z_input['MUY_POS'], ventana_output['CERRADA']),
+    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['BAJA'] & z_input['MUY_NEG'], ventana_output['CERRADA']),
+    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['BAJA'] & z_input['NEG'], ventana_output['CERRADA']),
+    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['BAJA'] & z_input['POS'], ventana_output['CASI_ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & t_pred_input['BAJA'] & z_input['MUY_POS'], ventana_output['ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['ZERO'], ventana_output['CERRADA'])
 ]
 
 controlador_ventana = ctrl.ControlSystem(reglas)
 simulador = ctrl.ControlSystemSimulation(controlador_ventana)
 
 # ==========================================
-# 2. FUNCIÓN DE SIMULACIÓN TÉRMICA
+# 4. Desborrosificacion
 # ==========================================
 def simular_difuso(T_media, T_amplitud, metodo_desborrosificacion):
     # Asignamos el método de desborrosificación elegido para esta corrida
@@ -63,13 +87,19 @@ def simular_difuso(T_media, T_amplitud, metodo_desborrosificacion):
     v = np.zeros(n_steps)
     v[0] = 20.0  # Temperatura inicial
     apertura_hist = np.zeros(n_steps)
+    T_pronostico = 12 * 3600  # Miramos 12 horas hacia el futuro
+    pasos_futuro = int(T_pronostico / dt)
 
     for i in range(n_steps - 1):
         z_actual = (v[i] - v0) * (ve[i] - v[i])
         hora_actual = (t[i] / 3600) % 24
         
+        idx_futuro = min(i + pasos_futuro, n_steps - 1)
+        temp_manana = ve[idx_futuro]
+
         simulador.input['Z'] = np.clip(z_actual, -100, 100)
         simulador.input['hora'] = hora_actual
+        simulador.input['t_predicha'] = temp_manana
         simulador.compute()
         
         alfa = simulador.output['ventana']
@@ -109,7 +139,7 @@ def main():
     
     for nombre_caso, t_med, t_amp in escenarios_tp:
         # Creamos una ventana por cada caso, con 2 filas y 2 columnas
-        fig, axs = plt.subplots(2, 2, figsize=(16, 9), dpi=100)
+        fig, axs = plt.subplots(2, 2, figsize=(12, 9), dpi=100)
         fig.suptitle(f'{nombre_caso}', fontsize=16, fontweight='bold')
         
         for col, (codigo_metodo, titulo_metodo) in enumerate(metodos):
