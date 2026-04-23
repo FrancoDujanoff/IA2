@@ -11,11 +11,11 @@ hora_input = ctrl.Antecedent(np.arange(0, 25, 0.1), 'hora')
 ventana_output = ctrl.Consequent(np.arange(0, 101, 1), 'ventana')
 
 # Conjuntos Z (Sintonía fina ajustada al rango operativo real)
-z_input['MUY_NEG'] = fuzz.trapmf(z_input.universe, [-100, -100, -5, -1])
-z_input['NEG'] = fuzz.trimf(z_input.universe, [-5, -1, 0])
-z_input['ZERO'] = fuzz.trimf(z_input.universe, [-1, 0, 1])
-z_input['POS'] = fuzz.trimf(z_input.universe, [0, 1, 5])
-z_input['MUY_POS'] = fuzz.trapmf(z_input.universe, [1, 5, 100, 100])
+z_input['MUY_NEG'] = fuzz.trapmf(z_input.universe, [-100, -100, -10, -5])
+z_input['NEG'] = fuzz.trimf(z_input.universe, [-10, -5, 0])
+z_input['ZERO'] = fuzz.trimf(z_input.universe, [-5, 0, 5])
+z_input['POS'] = fuzz.trimf(z_input.universe, [0, 5, 10])
+z_input['MUY_POS'] = fuzz.trapmf(z_input.universe, [5, 10, 100, 100])
 
 # Conjuntos HORA
 hora_input['NOCHE'] = fuzz.trapmf(hora_input.universe, [0, 0, 7, 8]) + \
