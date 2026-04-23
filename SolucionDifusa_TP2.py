@@ -42,48 +42,31 @@ ventana_output['CERRADA'] = fuzz.trapmf(ventana_output.universe, [75, 100, 100, 
 # Base de Reglas
 reglas = [
    # --- REGLAS REACTIVAS DE DÍA (Sin pronóstico) ---
-    # "Si es DÍA y el clima exterior es MUY FAVORABLE, abrir totalmente la ventana para maximizar el confort."
     ctrl.Rule(hora_input['DIA'] & z_input['MUY_NEG'], ventana_output['ABIERTA']),
-    # "Si es DÍA y el clima exterior es FAVORABLE, mantener la ventana casi abierta para aprovechar el alivio térmico."
     ctrl.Rule(hora_input['DIA'] & z_input['NEG'], ventana_output['CASI_ABIERTA']),
-    # "Si es DÍA y la temperatura interior es IDEAL, dejar la ventana a la mitad para mantener la ventilación básica."
     ctrl.Rule(hora_input['DIA'] & z_input['ZERO'], ventana_output['MITAD']),
-    # "Si es DÍA y el clima exterior es DESFAVORABLE, cerrar casi toda la ventana para frenar la pérdida de confort."
     ctrl.Rule(hora_input['DIA'] & z_input['POS'], ventana_output['CASI_CERRADA']),
-    # "Si es DÍA y el clima exterior es MUY DESFAVORABLE, sellar la ventana totalmente por emergencia térmica."
     ctrl.Rule(hora_input['DIA'] & z_input['MUY_POS'], ventana_output['CERRADA']),
 
     # --- REGLAS PROACTIVAS DE DÍA (Con pronóstico) ---
-    # "Si es DÍA y la temperatura interior es IDEAL, pero el pronóstico advierte CALOR, cerrar casi toda la ventana de forma preventiva."
     ctrl.Rule(hora_input['DIA'] & z_input['ZERO'] & t_pred_input['ALTA'], ventana_output['CASI_CERRADA']),
-    # "Si es DÍA y el clima exterior es DESFAVORABLE, y el pronóstico advierte CALOR, sellar la ventana totalmente para bloquear la ola térmica."
     ctrl.Rule(hora_input['DIA'] & z_input['POS'] & t_pred_input['ALTA'], ventana_output['CERRADA']),
-    # "Si es DÍA y el clima exterior es DESFAVORABLE, pero el pronóstico advierte FRÍO, dejar la ventana a la mitad esperando que refresque pronto."
-    ctrl.Rule(hora_input['DIA'] & z_input['POS'] & t_pred_input['BAJA'], ventana_output['MITAD']),
+    ctrl.Rule(hora_input['DIA'] & z_input['POS'] & t_pred_input['BAJA'], ventana_output['CASI_CERRADA']),
 
     # --- REGLAS DE SEGURIDAD NOCTURNA ---
-    # "Si es NOCHE y la temperatura interior es IDEAL, sellar la ventana totalmente para retener el confort mientras se duerme."
     ctrl.Rule(hora_input['NOCHE'] & z_input['ZERO'], ventana_output['CERRADA']),
 
     # --- REGLAS PROACTIVAS DE NOCHE (Amenaza de CALOR mañana) ---
-    # "Si es NOCHE y el clima exterior es MUY FAVORABLE, y el pronóstico advierte CALOR, abrir totalmente la ventana para pre-enfriar intensamente (Free-Cooling)."
     ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_NEG'] & t_pred_input['ALTA'], ventana_output['ABIERTA']),
-    # "Si es NOCHE y el clima exterior es FAVORABLE, y el pronóstico advierte CALOR, mantener la ventana casi abierta para acumular aire fresco preventivo."
     ctrl.Rule(hora_input['NOCHE'] & z_input['NEG'] & t_pred_input['ALTA'], ventana_output['CASI_ABIERTA']),
-    # "Si es NOCHE y el clima exterior es DESFAVORABLE, pero el pronóstico advierte CALOR, mantener la ventana casi abierta para intentar robar algo de fresco residual."
-    ctrl.Rule(hora_input['NOCHE'] & z_input['POS'] & t_pred_input['ALTA'], ventana_output['CASI_ABIERTA']),
-    # "Si es NOCHE y el clima exterior es MUY DESFAVORABLE, y el pronóstico advierte CALOR, abrir totalmente la ventana como última medida de ventilación de emergencia."
-    ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_POS'] & t_pred_input['ALTA'], ventana_output['ABIERTA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['POS'] & t_pred_input['ALTA'], ventana_output['CERRADA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_POS'] & t_pred_input['ALTA'], ventana_output['CERRADA']),
 
     # --- REGLAS PROACTIVAS DE NOCHE (Amenaza de FRÍO mañana) ---
-    # "Si es NOCHE y el clima exterior es MUY FAVORABLE, y el pronóstico advierte FRÍO, abrir totalmente la ventana para recolectar y acumular calor."
     ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_NEG'] & t_pred_input['BAJA'], ventana_output['ABIERTA']),
-    # "Si es NOCHE y el clima exterior es FAVORABLE, pero el pronóstico advierte FRÍO, ignorar el alivio temporal y sellar la ventana totalmente para acaparar inercia térmica."
     ctrl.Rule(hora_input['NOCHE'] & z_input['NEG'] & t_pred_input['BAJA'], ventana_output['CERRADA']),
-    # "Si es NOCHE y el clima exterior es DESFAVORABLE, y el pronóstico advierte FRÍO, mantener la ventana casi abierta esperando atrapar alguna brisa menos fría."
-    ctrl.Rule(hora_input['NOCHE'] & z_input['POS'] & t_pred_input['BAJA'], ventana_output['CASI_ABIERTA']),
-    # "Si es NOCHE y el clima exterior es MUY DESFAVORABLE, y el pronóstico advierte FRÍO, abrir totalmente la ventana como último recurso de supervivencia térmica."
-    ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_POS'] & t_pred_input['BAJA'], ventana_output['ABIERTA'])
+    ctrl.Rule(hora_input['NOCHE'] & z_input['POS'] & t_pred_input['BAJA'], ventana_output['CERRADA']),
+    ctrl.Rule(hora_input['NOCHE'] & z_input['MUY_POS'] & t_pred_input['BAJA'], ventana_output['CERRADA'])
 ]
 
 
