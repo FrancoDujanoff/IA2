@@ -50,6 +50,7 @@ def pre_simular(T_media, T_amplitud):
     
     # Onda de clima senoidal
     ve = T_media + T_amplitud * np.sin(2 * np.pi * (t_horas - 9) / 24)
+    ve_pred = T_media + T_amplitud * np.sin(2 * np.pi * ((t_horas + 6) - 9) / 24)
     v = np.zeros(n_steps)
     v[0] = 20.0
     z_hist = np.zeros(n_steps)
@@ -113,7 +114,7 @@ def pre_simular(T_media, T_amplitud):
         
     # Guardar el último valor para alinear arreglos
     z_hist[-1] = z_hist[-2]
-    return ve, v, z_hist
+    return ve, v, z_hist, ve_pred
 
 print("Pre-calculando las ecuaciones diferenciales de los 3 casos...")
 datos_casos = {
@@ -143,9 +144,18 @@ ax_tpred = plt.axes([0.02, 0.06, 0.18, 0.15])  # Panel para T_Predicha
 radio = RadioButtons(ax_radio, list(datos_casos.keys()))
 slider_tiempo = Slider(ax_slider, 'Hora del Día', 0.0, 23.99, valinit=12.0, valstep=0.1)
 
-line_ext, = ax_temp.plot(t_horas, datos_casos["Caso 1\nCruza Confort"][0], '--', color='orange', label='T. Exterior')
-line_int, = ax_temp.plot(t_horas, datos_casos["Caso 1\nCruza Confort"][1], '-', color='blue', linewidth=2, label='T. Interior')
+# Desempaquetamos el caso inicial (ahora son 4 variables)
+ve_ini, v_ini, z_hist_ini, ve_pred_ini = datos_casos["Caso 1\nCruza Confort"]
+
+# Dibujamos las líneas
+line_ext, = ax_temp.plot(t_horas, ve_ini, '--', color='orange', label='T. Exterior')
+
+# NUEVO: Dibujamos la línea del pronóstico (punteada fina color violeta/magenta)
+line_pred, = ax_temp.plot(t_horas, ve_pred_ini, ':', color='purple', linewidth=2, alpha=0.6, label='T. Pronóstico (+6h)')
+
+line_int, = ax_temp.plot(t_horas, v_ini, '-', color='blue', linewidth=2, label='T. Interior')
 ax_temp.axhline(25, color='green', linestyle=':', label='Confort (25°C)')
+
 vline_t = ax_temp.axvline(12.0, color='black', linewidth=2)
 ax_temp.set_ylabel('Temp (°C)')
 ax_temp.legend(loc='upper right')
@@ -157,12 +167,13 @@ def update(val):
     hora_actual = slider_tiempo.val
     idx = int(hora_actual * 60)
     
-    ve, v, z_hist = datos_casos[caso_actual]
+    ve, v, z_hist, ve_pred = datos_casos[caso_actual]
     z_actual = z_hist[idx]
     
     # 1. Actualizar Gráfico de Temperaturas
     line_ext.set_ydata(ve)
     line_int.set_ydata(v)
+    line_pred.set_ydata(ve_pred)
     vline_t.set_xdata([hora_actual, hora_actual])
     ax_temp.relim()
     ax_temp.autoscale_view()
