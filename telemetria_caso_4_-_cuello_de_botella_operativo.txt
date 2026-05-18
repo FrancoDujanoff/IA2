@@ -1,0 +1,19 @@
+=== REPORTE CINEMÁTICO: Caso 4 - Cuello de Botella Operativo ===
+Búsqueda Global Heurística - Secuencia Nodal (x, y)
+Obstáculos descubiertos: []
+
+--- AGV ID 1 ---
+Posición Origen: (0, 0) | Tarea: Estantería 27
+Integración Temporal (Ciclos consumidos: 17):
+(1,0) -> (2,0) -> (3,0) -> (4,0) -> (5,0) -> (6,0) -> (7,0) -> (7,1) -> (6,1) -> (5,1) -> (4,1) -> (3,1) -> (2,1) -> (1,1) -> (0,1) -> (0,0) -> (0,0)
+
+--- AGV ID 2 ---
+Posición Origen: (1, 0) | Tarea: Estantería 29
+Integración Temporal (Ciclos consumidos: 17):
+(2,0) -> (3,0) -> (4,0) -> (5,0) -> (6,0) -> (7,0) -> (8,0) -> (8,1) -> (7,1) -> (7,0) -> (6,0) -> (5,0) -> (4,0) -> (3,0) -> (2,0) -> (1,0) -> (1,0)
+
+--- AGV ID 3 ---
+Posición Origen: (2, 0) | Tarea: Estantería 31
+Integración Temporal (Ciclos consumidos: 17):
+(3,0) -> (4,0) -> (5,0) -> (6,0) -> (7,0) -> (8,0) -> (9,0) -> (9,1) -> (8,1) -> (7,1) -> (6,1) -> (5,1) -> (4,1) -> (3,1) -> (2,1) -> (2,0) -> (2,0)
+
