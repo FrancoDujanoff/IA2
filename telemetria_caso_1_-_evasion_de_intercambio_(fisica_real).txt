@@ -1,0 +1,14 @@
+=== REPORTE CINEMÁTICO: Caso 1 - Evasion de Intercambio (Fisica Real) ===
+Búsqueda Global Heurística - Secuencia Nodal (x, y)
+Obstáculos descubiertos: []
+
+--- AGV ID 1 ---
+Posición Origen: (0, 0) | Tarea: Estantería 18
+Integración Temporal (Ciclos consumidos: 31):
+(0,1) -> (0,2) -> (0,3) -> (0,4) -> (0,5) -> (0,6) -> (0,7) -> (0,8) -> (0,9) -> (0,10) -> (0,11) -> (0,12) -> (1,12) -> (0,12) -> (0,11) -> (0,10) -> (0,9) -> (0,8) -> (0,7) -> (0,6) -> (0,5) -> (1,5) -> (1,4) -> (0,4) -> (0,3) -> (0,2) -> (0,1) -> (0,0) -> (0,0) -> (0,0) -> (0,0)
+
+--- AGV ID 2 ---
+Posición Origen: (0, 12) | Tarea: Estantería 1
+Integración Temporal (Ciclos consumidos: 31):
+(0,11) -> (0,10) -> (0,9) -> (1,9) -> (1,8) -> (1,8) -> (1,8) -> (1,8) -> (1,8) -> (0,8) -> (0,7) -> (0,6) -> (0,5) -> (0,4) -> (0,3) -> (0,2) -> (0,1) -> (1,1) -> (0,1) -> (0,2) -> (0,3) -> (0,4) -> (0,5) -> (0,6) -> (0,7) -> (0,8) -> (0,9) -> (0,10) -> (0,11) -> (0,12) -> (0,12)
+
