@@ -29,9 +29,9 @@ RANGO_SENSOR = 2      # Rango del escáner LiDAR estocástico
 # =============================================================================
 class Node:
     def __init__(self, x, y, g=0, h=0, parent=None, time=0):
-        self.x = x; self.y = y; self.time = time
-        self.g = g; self.h = h; self.f = g + h      
-        self.parent = parent
+        self.x = x; self.y = y; self.time = time #Se agrega dimensión temporal
+        self.g = g; self.h = h; self.f = g + h  #Funcion de evaluacion    
+        self.parent = parent #Puntero al nodo anterior para reconstrucción de ruta
 
     def __lt__(self, other):
         return self.f < other.f
@@ -75,19 +75,21 @@ def a_star_dynamic(grid, start, goal, time_start, reservation_table):
         if state in closed_set: continue
         closed_set.add(state)
 
+        # Bucle que evalúa los 5 vectores cinemáticos: Arriba, Abajo, Izquierda, Derecha y Esperar (0,0)
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)]:
-            nx, ny = current.x + dx, current.y + dy
-            ntime = current.time + 1
+            nx, ny = current.x + dx, current.y + dy #Calcula la nueva posicion hipotetica
+            ntime = current.time + 1 #El movimiento consume 1 ciclo de reloj
 
             if 0 <= nx < grid.shape[0] and 0 <= ny < grid.shape[1] and grid[nx, ny] == 0:
-                # Verificación contra tabla temporal
-                if (nx, ny, ntime) in reservation_table: continue
-                # Filtro matemático de Edge Conflict
-                if (nx, ny, current.time) in reservation_table and (current.x, current.y, ntime) in reservation_table: continue
+                # Filtro 1: verifica si el montacargas prioritario ya reservo esa celda en ese tiempo
+                if (nx, ny, ntime) in reservation_table: continue #Si esta ocupada aborta
+                # Filtro 2: Si en mi tiempo actual alguien ya esta en (nx, ny) y ademas ese alguien planea moverse a mi posicion actual
+                if (nx, ny, current.time) in reservation_table and (current.x, current.y, ntime) in reservation_table: continue 
+                #Evita cruzar de frente y chocar
 
                 # Disociación Energética (Tracción vs. Ralentí)
                 costo_accion = 0.2 if (dx == 0 and dy == 0) else 1.0
-                g_cost = current.g + costo_accion
+                g_cost = current.g + costo_accion #Si algoritmo decide quedarse quieto, gasta menos energia, incentivando la espera estratégica en situaciones de congestión
                 
                 neighbor = Node(nx, ny, g_cost, heuristic(nx, ny, goal[0], goal[1]), current, ntime)
                 heapq.heappush(open_set, neighbor)
@@ -127,16 +129,21 @@ def ejecutar_simulacion(nombre_caso, configuracion_agentes, obstaculos_ocultos):
         # 1. Escaneo Ambiental
         for agente in agentes:
             if agente['terminado']: continue
+            #Determina donde esta el agente en t
             pos_actual = historial_posiciones[agente['id']][-1] if historial_posiciones[agente['id']] else agente['inicio']
             detectados = []
-            for obs in obs_pendientes:
-                if (abs(pos_actual[0] - obs[0]) + abs(pos_actual[1] - obs[1])) <= RANGO_SENSOR:
-                    grid_dinamico[obs[0], obs[1]] = -1 
-                    detectados.append(obs)
-                    replanificar_global = True
+            
+            for obs in obs_pendientes: #El agente detecta obstaculos dentro de su rango sensorial
+                # Si el obstaculo esta dentro del rango de deteccion, se marca en el grid dinamico 
+                # y se agrega a la lista de detectados para eliminarlo de pendientes
+                if (abs(pos_actual[0] - obs[0]) + abs(pos_actual[1] - obs[1])) <= RANGO_SENSOR: #
+                    grid_dinamico[obs[0], obs[1]] = -1 #Se dibuja un muro en el obstaculo
+                    detectados.append(obs) 
+                    replanificar_global = True #Eleva flag de alarma
             for obs in detectados: obs_pendientes.remove(obs)
                 
         # 2. Interrupción Sensorial
+        #Se aborta la trayectoria actual para no chocar
         if replanificar_global:
             tabla_reservas.clear()
             for agente in agentes: 
@@ -170,11 +177,15 @@ def ejecutar_simulacion(nombre_caso, configuracion_agentes, obstaculos_ocultos):
                 continue
 
             # Invocador del Optimizador
-            if len(agente['ruta']) == 0:
+            if len(agente['ruta']) == 0: #Si el agente actual no tiene un camino asegurado
+                # Calcula ruta, enviandole la tabla que ya contiene el futuro de los agentes prioritarios
                 ruta_calculada = a_star_dynamic(grid_dinamico, pos_actual, agente['meta_actual'], t, tabla_reservas)
-                if ruta_calculada:
-                    agente['ruta'] = ruta_calculada[1:] 
+                
+                if ruta_calculada: # Filtro 3, por cada paso de su nueva ruta
+                    agente['ruta'] = ruta_calculada[1:]  # Infla el tiempo de ocupacion
                     for r in ruta_calculada:
+                        #Inyecta en la tabla global: bloquea (x, y) en t y en t+1 
+                        # Asi nadie choca la parte trasera si decide frenar
                         for inflacion in range(BUFFER_TIEMPO + 1):
                             tabla_reservas.add((r[0], r[1], r[2] + inflacion))
             
